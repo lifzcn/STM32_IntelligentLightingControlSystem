@@ -164,9 +164,8 @@ int main(void)
 		OLED_ShowNum(x + 32 + 8 * 3, y + 2 * 3, stimestructure.Minutes, 2, 16);
 		OLED_ShowChar(x + 32 + 8 * 5, y + 2 * 3, ':', 16);
 		OLED_ShowNum(x + 32 + 8 * 6, y + 2 * 3, stimestructure.Seconds, 2, 16);
-		HAL_Delay(1000);
 		
-    for(i=0,ad1=0,ad2=0,ad3=0;i<30;)
+    for(i=0,ad1=0,ad2=0,ad3=0;i<15;)
     {
 			ad1 += ADC_Value[i++];
       ad2 += ADC_Value[i++];
