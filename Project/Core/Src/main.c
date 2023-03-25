@@ -171,9 +171,9 @@ int main(void)
       ad2 += ADC_Value[i++];
 			ad3 += ADC_Value[i++];
     }
-    ad1 /= 10;
-    ad2 /= 10;
-		ad3 /= 10;
+    ad1 /= 5;
+    ad2 /= 5;
+		ad3 /= 5;
 		printf("%d,%d,%d",ad1,ad2,ad3);
     /* USER CODE END WHILE */
 
