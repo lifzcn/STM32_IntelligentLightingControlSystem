@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
-#include "dma.h"
 #include "i2c.h"
 #include "rtc.h"
 #include "tim.h"
@@ -62,11 +61,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-RTC_DateTypeDef sdatestructure;
-RTC_TimeTypeDef stimestructure;
-uint32_t ADC_Value[30];
-uint8_t i;
-uint32_t ad1, ad2, ad3;
+
 /* USER CODE END 0 */
 
 /**
@@ -76,12 +71,16 @@ uint32_t ad1, ad2, ad3;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	RTC_DateTypeDef sdatestructure;
+	RTC_TimeTypeDef stimestructure;
   uint8_t x = 0;
 	uint8_t y = 0;
 	uint8_t rxData[1];
 	uint8_t markBit = 0;
 	float numCmd;
 	uint8_t dutyValue = 0;
+	uint32_t ADC_Value[30];
+	uint32_t ad1 = 0, ad2 = 0, ad3 = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -102,7 +101,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
@@ -121,7 +119,7 @@ int main(void)
 	OLED_ShowChinese(x + 16 * 5, y + 2 * 1, 7);
 	
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Value, 30);
-	
+
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -133,6 +131,7 @@ int main(void)
   {
 		HAL_UART_Receive(&huart1, rxData, 1, 0xffff);
 		markBit = rxData[0] - (int)rxData[0];
+		dutyValue = (int)rxData[0];
 		switch(markBit)
 		{
 			case 1:
@@ -164,16 +163,13 @@ int main(void)
 		OLED_ShowNum(x + 32 + 8 * 3, y + 2 * 3, stimestructure.Minutes, 2, 16);
 		OLED_ShowChar(x + 32 + 8 * 5, y + 2 * 3, ':', 16);
 		OLED_ShowNum(x + 32 + 8 * 6, y + 2 * 3, stimestructure.Seconds, 2, 16);
-		
-    for(i=0,ad1=0,ad2=0,ad3=0;i<15;)
-    {
+
+		for(int i=0;i<30;)
+		{
 			ad1 += ADC_Value[i++];
-      ad2 += ADC_Value[i++];
-			ad3 += ADC_Value[i++];
-    }
-    ad1 /= 5;
-    ad2 /= 5;
-		ad3 /= 5;
+			ad1 += ADC_Value[i++];
+			ad1 += ADC_Value[i++];
+		}
 		printf("%d,%d,%d",ad1,ad2,ad3);
     /* USER CODE END WHILE */
 

@@ -63,6 +63,12 @@ void Error_Handler(void);
 #define Sensor_2_GPIO_Port GPIOA
 #define Sensor_3_Pin GPIO_PIN_2
 #define Sensor_3_GPIO_Port GPIOA
+#define LED_GND_1_Pin GPIO_PIN_12
+#define LED_GND_1_GPIO_Port GPIOB
+#define LED_GND_2_Pin GPIO_PIN_13
+#define LED_GND_2_GPIO_Port GPIOB
+#define LED_GND_3_Pin GPIO_PIN_14
+#define LED_GND_3_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
