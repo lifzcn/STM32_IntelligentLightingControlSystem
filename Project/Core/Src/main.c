@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "i2c.h"
 #include "rtc.h"
 #include "tim.h"
@@ -75,8 +76,8 @@ int main(void)
 	RTC_TimeTypeDef stimestructure;
   uint8_t x = 0;
 	uint8_t y = 0;
-	uint8_t rxData[1];
-	uint8_t markBit = 0;
+	uint8_t rxBuffer[5];
+	uint8_t charCmd;
 	float numCmd;
 	uint8_t dutyValue = 0;
 	uint32_t ADC_Value[30];
@@ -101,6 +102,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
@@ -118,7 +120,7 @@ int main(void)
 	OLED_ShowChinese(x + 16 * 4, y + 2 * 1, 6);
 	OLED_ShowChinese(x + 16 * 5, y + 2 * 1, 7);
 	
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Value, 30);
+	HAL_ADC_Start(&hadc1);
 
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
@@ -129,29 +131,31 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		HAL_UART_Receive(&huart1, rxData, 1, 0xffff);
-		markBit = rxData[0] - (int)rxData[0];
-		dutyValue = (int)rxData[0];
-		switch(markBit)
-		{
-			case 1:
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, dutyValue);
-			break;
-			case 2:
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, dutyValue);
-			break;
-			case 3:
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, dutyValue);
-			break;
-			default:
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
-				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
-			break;
-		}
-
 		HAL_RTC_GetTime(&hrtc, &stimestructure, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sdatestructure, RTC_FORMAT_BIN);
+		
+		HAL_UART_Receive_DMA(&huart1, rxBuffer, 5);
+		charCmd = rxBuffer[4];
+
+//		markBit = rxData[0] - (int)rxData[0];
+//		dutyValue = (int)rxData[0];
+//		switch(markBit)
+//		{
+//			case '1':
+//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, dutyValue);
+//			break;
+//			case '2':
+//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, dutyValue);
+//			break;
+//			case '3':
+//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, dutyValue);
+//			break;
+//			default:
+//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
+//			break;
+//		}
 		
 		OLED_ShowNum(x + 24 + 8 * 0, y + 2 * 2, sdatestructure.Year + 2000, 4, 16);
 		OLED_ShowChar(x + 24 + 8 * 4, y + 2 * 2, '-', 16);
@@ -170,7 +174,11 @@ int main(void)
 			ad1 += ADC_Value[i++];
 			ad1 += ADC_Value[i++];
 		}
-		printf("%d,%d,%d",ad1,ad2,ad3);
+		ad1 /= 10;
+		ad2 /= 10;
+		ad3 /= 10;
+		printf("%d,%d,%d\n",ad1,ad2,ad3);
+		HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
