@@ -76,11 +76,11 @@ int main(void)
 	RTC_TimeTypeDef stimestructure;
   uint8_t x = 0;
 	uint8_t y = 0;
-	uint8_t rxBuffer[5];
-	uint8_t charCmd;
-	float numCmd;
+	uint8_t rxBuffer[3];
+	uint8_t numCmd;
+	uint8_t channelCmd;
 	uint8_t dutyValue = 0;
-	uint32_t ADC_Value[30];
+	uint32_t ADC_Value[15];
 	uint32_t ad1 = 0, ad2 = 0, ad3 = 0;
   /* USER CODE END 1 */
 
@@ -120,8 +120,6 @@ int main(void)
 	OLED_ShowChinese(x + 16 * 4, y + 2 * 1, 6);
 	OLED_ShowChinese(x + 16 * 5, y + 2 * 1, 7);
 	
-	HAL_ADC_Start(&hadc1);
-
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -131,31 +129,93 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		HAL_ADC_Start(&hadc1);
+    HAL_ADC_PollForConversion(&hadc1, 50);
+    ad1 = HAL_ADC_GetValue(&hadc1);
+		
 		HAL_RTC_GetTime(&hrtc, &stimestructure, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sdatestructure, RTC_FORMAT_BIN);
 		
-		HAL_UART_Receive_DMA(&huart1, rxBuffer, 5);
-		charCmd = rxBuffer[4];
-
-//		markBit = rxData[0] - (int)rxData[0];
-//		dutyValue = (int)rxData[0];
-//		switch(markBit)
-//		{
-//			case '1':
-//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, dutyValue);
-//			break;
-//			case '2':
-//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, dutyValue);
-//			break;
-//			case '3':
-//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, dutyValue);
-//			break;
-//			default:
-//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
-//				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
-//			break;
-//		}
+		HAL_UART_Receive_DMA(&huart1, rxBuffer, 3);
+		channelCmd = rxBuffer[2];
+		numCmd = rxBuffer[0];
+		switch(channelCmd)
+		{
+			case '1':
+				switch(numCmd)
+				{
+					case '0':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+					break;
+					case '1':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000);
+					break;
+					case '2':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
+					break;
+					case '3':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 2000);
+					break;
+					case '4':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 2500);
+					break;
+					default:
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+					break;
+				}
+			break;
+			case '2':
+				switch(numCmd)
+				{
+					case '0':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+					break;
+					case '1':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1000);
+					break;
+					case '2':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1500);
+					break;
+					case '3':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 2000);
+					break;
+					case '4':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 2500);
+					break;
+					default:
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+					break;
+				}
+			break;
+			case '3':
+				switch(numCmd)
+				{
+					case '0':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+					break;
+					case '1':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000);
+					break;
+					case '2':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1500);
+					break;
+					case '3':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 2000);
+					break;
+					case '4':
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 2500);
+					break;
+					default:
+						__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+					break;
+				}
+			break;
+			default:
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+			break;
+		}
 		
 		OLED_ShowNum(x + 24 + 8 * 0, y + 2 * 2, sdatestructure.Year + 2000, 4, 16);
 		OLED_ShowChar(x + 24 + 8 * 4, y + 2 * 2, '-', 16);
@@ -168,15 +228,17 @@ int main(void)
 		OLED_ShowChar(x + 32 + 8 * 5, y + 2 * 3, ':', 16);
 		OLED_ShowNum(x + 32 + 8 * 6, y + 2 * 3, stimestructure.Seconds, 2, 16);
 
-		for(int i=0;i<30;)
+		
+		for(int i=0;i<15;)
 		{
 			ad1 += ADC_Value[i++];
 			ad1 += ADC_Value[i++];
 			ad1 += ADC_Value[i++];
 		}
-		ad1 /= 10;
-		ad2 /= 10;
-		ad3 /= 10;
+		ad1 /= 5;
+		ad2 /= 5;
+		ad3 /= 5;
+		
 		printf("%d,%d,%d\n",ad1,ad2,ad3);
 		HAL_Delay(1000);
     /* USER CODE END WHILE */
